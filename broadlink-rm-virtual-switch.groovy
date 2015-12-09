@@ -13,6 +13,8 @@
  * 	Requirements:
  * 		An android device (Android Box/Tablet/Phone) within the same wi-fi network as the Broadlink RM device, with Android RM Bridge installed and running.
  * 		Broadlink RM device
+ * 		SmartThings Hub
+ * 		Amazon Echo (Only for voice control)
  * 
  * 	References:
  * 		Android RM Bridge created by Jochen Ruehl which you can get from http://rm-bridge.fun2code.de
