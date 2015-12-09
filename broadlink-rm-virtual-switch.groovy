@@ -1,0 +1,127 @@
+/**
+ *  Copyright 2015 Benjamin Yam
+ *	
+ *	Broadlink™ RM Virtual Switch 
+ *	Version : 1.0.0
+ *
+ *	The original licensing applies, with the following exceptions:
+ *		1.	These modifications may NOT be used without freely distributing all these modifications freely
+ *			and without limitation, in source form.	 The distribution may be met with a link to source code
+ *			with these modifications.
+ *		2.	These modifications may NOT be used, directly or indirectly, for the purpose of any type of
+ *			monetary gain.	These modifications may not be used in a larger entity which is being sold,
+ *			leased, or anything other than freely given.
+ *		3.	To clarify 1 and 2 above, if you use these modifications, it must be a free project, and
+ *			available to anyone with "no strings attached."	 (You may require a free registration on
+ *			a free website or portal in order to distribute the modifications.)
+ *		4.	The above listed exceptions to the original licensing do not apply to the holder of the
+ *			copyright of the original work.	 The original copyright holder can use the modifications
+ *			to hopefully improve their original work.  In that event, this author transfers all claim
+ *			and ownership of the modifications to "SmartThings."
+ *
+ *	Original Copyright information:
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ *	The latest version of this file can be found at :
+ *	
+ *
+ *  2015-12-09  V1.0.0  Initial release
+ */
+
+metadata {
+	
+    definition (
+    name: "Broadlink™ RM Virtual Switch",
+    description: "Control (On/Off) devices through infrared or RF using BroadLink™ RM devices. Android RM Bridge is required to be installed and started in an Android device to bridge the connection with the BroadLink™ RM device. This switch sends the code to Android RM Bridge which in turn trigger the sending of IR/RF signal from the BroadLink™ RM device. Android RM Bridge is created by Jochen Ruehl and you can get it from http://rm-bridge.fun2code.de .",
+    namespace: "6thmarch",
+    category: "Convenience",
+    author: "Benjamin Yam") {
+		capability "Switch"
+        capability "Relay Switch"
+	}
+    
+    preferences {
+       section("RM Bridge Server Configuration"){
+       input "server", "text", title: "Server Address",
+              description: "This is the domain or IP Address of the Android RM Bridge Server. e.g. mydomain.com or 192.168.x.x", defaultValue: '',
+              required: true, displayDuringSetup: true
+
+       input "port", "text", title: "Port Number",
+              description: "This is the port number of Android RM Bridge Server.", defaultValue: '',
+              required: true, displayDuringSetup: true
+              
+       input "username", "text", title: "Username",
+              description: "This is the username for authentication for Android RM Bridge.", defaultValue: '',
+              required: false, displayDuringSetup: true
+              
+       input "passwd", "password", title: "Password",
+              description: "This is the password created for authentication for Android RM Bridge.", defaultValue: '',
+              required: false, displayDuringSetup: true
+              }
+       input "onCode", "text", title: "ON Code",
+              description: "This is the code to send to Android RM Bridge if the switch is turned on. e.g. FanOn",
+              required: true, displayDuringSetup: true
+       input "offCode", "text", title: "OFF Code",
+              description: "This is the code to send to Android RM Bridge if the switch is turned off. e.g. FanOff",
+              required: true, displayDuringSetup: true
+    }
+
+	tiles {
+		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
+			state "off", label: '${currentValue}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "on", label: '${currentValue}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+		}
+		standardTile("on", "device.switch", decoration: "flat") {
+			state "default", label: 'On', action: "onPhysical", backgroundColor: "#ffffff"
+		}
+		standardTile("off", "device.switch", decoration: "flat") {
+			state "default", label: 'Off', action: "offPhysical", backgroundColor: "#ffffff"
+		}
+        main "switch"
+		details(["switch","on","off"])
+	}
+}
+
+def on() {
+	log.debug "$version on()"
+	sendEvent(name: "switch", value: "on")
+    makeJSONBroadlinkRMBridgeRequest("$onCode")
+}
+
+def off() {
+	log.debug "$version off()"
+	sendEvent(name: "switch", value: "off")
+    makeJSONBroadlinkRMBridgeRequest("$offCode")
+}
+
+private getVersion() {
+	"PUBLISHED"
+}
+
+//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
+def makeJSONBroadlinkRMBridgeRequest(String code) {
+    
+    def params = [
+        uri:  "http://$username:$passwd@$server:$port/code/",
+        path: "$code",
+        contentType: 'application/json'        
+    ]
+    try {
+        httpGet(params) {resp ->
+            log.debug "resp data: ${resp.data}"
+            log.debug "code: ${resp.data.code}"
+            log.debug "msg: ${resp.data.msg}"
+        }
+    } catch (e) {
+        log.error "error: $e"
+
+    }
+}
