@@ -40,7 +40,9 @@
  * 			   If your external IP Address is always changing and you do not have a domain name, you may consider 
  * 			   using Dynamic DNS Service like no-ip.com .	   
  * 			   e.g. mydomain.com or x.x.x.x * 				
- * 			c. Port Number listed in the Android RM Bridge App
+ * 			c. Port Number listed in the Android RM Bridge App 
+ * 			   (Note: Make sure to set-up Port Forwarding in your router to forward that port to the IP Address 
+ * 			   stated in the Android RM Bridge App.)
  * 			d. Username created for Android RM Bridge App
  * 			e. Password created for Android RM Bridge App
  * 			f. ON Code - Code created in the Android RM Bridge Management Console. 
