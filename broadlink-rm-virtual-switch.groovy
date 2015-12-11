@@ -136,10 +136,10 @@ metadata {
 			state "on", label: '${currentValue}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 		}
 		standardTile("on", "device.switch", decoration: "flat") {
-			state "default", label: 'On', action: "onPhysical", backgroundColor: "#ffffff"
+			state "default", label: 'On', action: "on", backgroundColor: "#ffffff"
 		}
 		standardTile("off", "device.switch", decoration: "flat") {
-			state "default", label: 'Off', action: "offPhysical", backgroundColor: "#ffffff"
+			state "default", label: 'Off', action: "off", backgroundColor: "#ffffff"
 		}
         main "switch"
 		details(["switch","on","off"])
