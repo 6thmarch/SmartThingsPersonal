@@ -90,10 +90,6 @@
  *	
  *
  *  2015-12-12  V1.0.0  Initial release
- * 			Known Issues: Amazon Echo Replies "That command does not work on [switch name] " but commands still executed.
- * 				      Probably due to too many commands to execute and the Amazon Echo time out on waiting for the reply
- * 				      from SmartThings before all the commands are completed.
- * 				      
  */
  import groovy.transform.Field
  @Field final int MAX_CODES_PER_GROUP = 10 //on() and off() need to be changed if this value is edited.
@@ -107,7 +103,7 @@ metadata {
     category: "Convenience",
     author: "Benjamin Yam") {
 		capability "Switch"
-        capability "Relay Switch"
+        capability "Momentary"
 	}
     
     preferences {
@@ -146,10 +142,10 @@ metadata {
 			state "off", label: '${currentValue}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 			state "on", label: '${currentValue}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 		}
-		standardTile("on", "device.switch", decoration: "flat") {
+		standardTile("on", "device.momentary", decoration: "flat") {
 			state "default", label: 'On', action: "on", backgroundColor: "#ffffff"
 		}
-		standardTile("off", "device.switch", decoration: "flat") {
+		standardTile("off", "device.momentary", decoration: "flat") {
 			state "default", label: 'Off', action: "off", backgroundColor: "#ffffff"
 		}
         main "switch"
@@ -158,7 +154,6 @@ metadata {
 }
 
 def on() {
-	log.debug "$version on()"
 	sendEvent(name: "switch", value: "on")
 
             
@@ -196,7 +191,6 @@ def on() {
 }
 
 def off() {
-	log.debug "$version off()"
 	sendEvent(name: "switch", value: "off")
     
     if("${offCode1}" != "null"){
@@ -229,10 +223,6 @@ def off() {
     if("${offCode10}" != "null"){
          makeJSONBroadlinkRMBridgeRequest("${offCode10}")
     }
-}
-
-private getVersion() {
-	"PUBLISHED"
 }
 
 //Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
