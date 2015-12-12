@@ -2,7 +2,7 @@
  *  Copyright 2015 Benjamin Yam
  *	
  *	Broadlink™ RM Virtual Switch 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		Broadlink RM Virtual Switch is a SmartThings Device Type that allows you to turn on or off devices 
@@ -87,10 +87,10 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *	The latest version of this file can be found at :
- *	
+ *	https://github.com/6thmarch/SmartThingsPersonal/blob/master/broadlink-rm-virtual-switch.groovy
  *
  *  2015-12-09  V1.0.0  Initial release
- *  2015-12-12  V1.0.1  Some code clean up
+ *  2015-12-12  V1.0.1  Code clean up and bug fix
  */
 
 metadata {
@@ -102,7 +102,7 @@ metadata {
     category: "Convenience",
     author: "Benjamin Yam") {
 		capability "Switch"
-        capability "Relay Switch"
+        	capability "Momentary"
 	}
     
     preferences {
@@ -133,39 +133,34 @@ metadata {
 
 	tiles {
 		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
-			state "off", label: '${currentValue}', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
-			state "on", label: '${currentValue}', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+			state "off", label: '${currentValue}', action: "on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "on", label: '${currentValue}', action: "off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 		}
-		standardTile("on", "device.switch", decoration: "flat") {
-			state "default", label: 'On', action: "on", backgroundColor: "#ffffff"
+		standardTile("on", "device.momentary", decoration: "flat") {
+			state "default", label: 'On', action: "on"
 		}
-		standardTile("off", "device.switch", decoration: "flat") {
-			state "default", label: 'Off', action: "off", backgroundColor: "#ffffff"
+		standardTile("off", "device.momentary", decoration: "flat") {
+			state "default", label: 'Off', action: "off"
 		}
         main "switch"
 		details(["switch","on","off"])
 	}
 }
 
+
 def on() {
-	log.debug "$version on()"
 	sendEvent(name: "switch", value: "on")
     makeJSONBroadlinkRMBridgeRequest("$onCode")
 }
 
 def off() {
-	log.debug "$version off()"
 	sendEvent(name: "switch", value: "off")
     makeJSONBroadlinkRMBridgeRequest("$offCode")
 }
 
-private getVersion() {
-	"PUBLISHED"
-}
-
 //Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
 def makeJSONBroadlinkRMBridgeRequest(String code) {
-    
+    log.debug "Sending code: $code"
     def params = [
         uri:  "http://$username:$passwd@$server:$port/code/",
         path: "$code",
@@ -182,3 +177,4 @@ def makeJSONBroadlinkRMBridgeRequest(String code) {
 
     }
 }
+
