@@ -90,6 +90,10 @@
  *	
  *
  *  2015-12-12  V1.0.0  Initial release
+ * 			Known Issues: Amazon Echo Replies "That command does not work on [switch name] " but commands still executed.
+ * 				      Probably due to too many commands to execute and the Amazon Echo time out on waiting for the reply
+ * 				      from SmartThings before all the commands are completed.
+ * 				      
  */
  import groovy.transform.Field
  @Field final int MAX_CODES_PER_GROUP = 10 //on() and off() need to be changed if this value is edited.
