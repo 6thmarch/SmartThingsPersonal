@@ -87,7 +87,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *	The latest version of this file can be found at :
- *	https://github.com/6thmarch/SmartThingsPersonal/blob/master/broadlink-rm-virtual-switch.groovy
+ *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2015-12-09  V1.0.0  Initial release
  *  2015-12-12  V1.0.1  Code clean up and bug fix
