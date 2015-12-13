@@ -2,7 +2,7 @@
  *  Copyright 2015 Benjamin Yam
  *	
  *	Broadlink™ RM Virtual Switch 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		Broadlink RM Virtual Switch is a SmartThings Device Type that allows you to turn on or off devices 
