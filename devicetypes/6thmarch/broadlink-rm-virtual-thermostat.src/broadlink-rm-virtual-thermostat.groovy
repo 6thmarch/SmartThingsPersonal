@@ -92,7 +92,7 @@ metadata {
               description: "This is the password created for authentication for Android RM Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               }
-       
+       //On Code currently not used
        input "onCode", "text", title: "ON",
               description: "This is the code to send to Android RM Bridge if the switch is turned on. e.g. AirConditionerOn",
               required: false, displayDuringSetup: true
