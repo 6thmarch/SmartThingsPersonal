@@ -52,12 +52,15 @@ metadata {
 	}
     
     preferences {
-       section("HTTP GET Request Switch Configuration"){      
-       input "onRequest", "text", title: "ON URL",
-              description: "This is the URL to send the GET request when the switch is turned on.",
+       section("HTTP GET Request Switch Configuration"){
+       input "url", "text", title: "URL",
+              description: "This is the URL (up to '&message=') to send the message to. E.g http://domain.com/sendmessage?key=abcdefg&message=",
               required: true, displayDuringSetup: true
-       input "offRequest", "text", title: "OFF URL",
-              description: "This is the URL to send the GET request when the switch is turned off.",
+       input "onMessage", "text", title: "ON Message",
+              description: "This is the message to send when the switch is turned on.",
+              required: true, displayDuringSetup: true
+       input "offMessage", "text", title: "OFF Message",
+              description: "This is the message to send when the switch is turned off.",
               required: true, displayDuringSetup: true
    	 }
      }
@@ -81,26 +84,25 @@ metadata {
 
 def on() {
 	sendEvent(name: "switch", value: "on")
-    sendGetRequest("$onRequest")
+    sendGetRequest("$onMessage")
 }
 
 def off() {
 	sendEvent(name: "switch", value: "off")
-    sendGetRequest("$offRequest")
+    sendGetRequest("$offMessage")
 }
 
 //Send GET Request
-def sendGetRequest(String url) {
-    log.debug "Sending GET Request to url: $url"
+def sendGetRequest(String msg) {
+    log.debug "Sending GET Request to url: $url$msg"
+    log.debug "$url$msg"
     def params = [
-        uri:  "$url",
+        uri:  "$url$msg",
         contentType: 'application/json'        
     ]
     try {
         httpGet(params) {resp ->
             log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
         }
     } catch (e) {
         log.error "error: $e"
