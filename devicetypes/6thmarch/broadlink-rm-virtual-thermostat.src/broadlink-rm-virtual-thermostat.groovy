@@ -92,7 +92,7 @@ metadata {
               description: "This is the password created for authentication for Android RM Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               }
-       //On Code currently not used
+       
        input "onCode", "text", title: "ON",
               description: "This is the code to send to Android RM Bridge if the switch is turned on. e.g. AirConditionerOn",
               required: false, displayDuringSetup: true
@@ -132,6 +132,7 @@ metadata {
         standardTile("mode", "device.switch", inactiveLabel: false, decoration: "flat") {
 			state "off", label:'${name}', action:"thermostat.on", backgroundColor:"#ffffff"
 			state "on", label:'${name}', action:"thermostat.off", backgroundColor:"#269bd2"
+            state "idle", label:'${name}', action:"thermostat.on", backgroundColor:"#269bd2"
 			//state "auto", label:'${name}', action:"thermostat.off", backgroundColor:"#79b821"
 		}
 		standardTile("up", "device.temperature", inactiveLabel: false, decoration: "flat") {
@@ -171,15 +172,16 @@ def evaluate(temp,coolingSetpoint) {
 	def cooling = false
 	def idle = false
 	
-	if (mode in ["cool","auto", "on"]) {
-		if (temp - coolingSetpoint >= threshold) {
+	if (mode in ["cool","auto", "on", "idle"]) {
+		if (temp - coolingSetpoint >= 0) {
 			cooling = true
 			sendEvent(name: "thermostatOperatingState", value: "cooling")
+           	sendEvent(name: "switch", value: "on")
             makeJSONBroadlinkRMBridgeRequest(getSetTempCode(coolingSetpoint))
 		}
 		else if (coolingSetpoint - temp >= threshold) {
 			idle = true
-            makeJSONBroadlinkRMBridgeRequest("$offCode")
+
 
 
 		}
@@ -189,8 +191,11 @@ def evaluate(temp,coolingSetpoint) {
     	   makeJSONBroadlinkRMBridgeRequest("$offCode")
 
     }
-	if (idle && !cooling) {
+	if (idle && !cooling && mode != "idle") {
 		sendEvent(name: "thermostatOperatingState", value: "idle")
+        sendEvent(name: "switch", value: "idle")
+        makeJSONBroadlinkRMBridgeRequest("$offCode")
+
 
 
 	}
@@ -205,7 +210,6 @@ def setLevel(value) {
 
 def up() {
 	log.debug "up()"
-
 
 	def ts = device.currentState("coolingSetpoint")
 	def degreesC = ts ? ts.integerValue + 1 : 24 
@@ -224,6 +228,9 @@ def down() {
 
 def setTemperature(value) {
 	sendEvent(name:"temperature", value: value)
+    evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+
+
 }
 
 def setCoolingSetpoint(Double degreesC) {
