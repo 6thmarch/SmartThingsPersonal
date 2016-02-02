@@ -2,7 +2,6 @@
  *  Alexa Helper-Virtual Dimmer
  *
  * 	Copyright 2016 Benjamin Yam
- *	
  *
  *	Modified from :
  *  Copyright 2015 Michael Struck

@@ -157,6 +157,7 @@ def parse(String description) {
     {
        	Float temp = msg.temperature.toFloat()
    	    sendEvent(name: "temperature", value: temp.round(1))
+         evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
     }
 
 
@@ -175,37 +176,40 @@ def evaluate(temp,coolingSetpoint) {
 	if (mode in ["cool","auto", "on", "idle"]) {
 		if (temp - coolingSetpoint >= 0) {
 			cooling = true
-			sendEvent(name: "thermostatOperatingState", value: "cooling")
-           	sendEvent(name: "switch", value: "on")
-            makeJSONBroadlinkRMBridgeRequest(getSetTempCode(coolingSetpoint))
+            if(current != "cooling"){
+                makeJSONBroadlinkRMBridgeRequest(getSetTempCode(coolingSetpoint))
+                sendEvent(name: "thermostatOperatingState", value: "cooling")
+             	sendEvent(name: "switch", value: "on")
+            }
+            
 		}
 		else if (coolingSetpoint - temp >= threshold) {
 			idle = true
-
-
-
 		}
 		sendEvent(name: "thermostatSetpoint", value: coolingSetpoint)
 	}
     else if(mode == "off"){
-    	   makeJSONBroadlinkRMBridgeRequest("$offCode")
-
+            if(current != "off"){
+                makeJSONBroadlinkRMBridgeRequest("$offCode")
+                sendEvent(name: "thermostatOperatingState", value: "off")
+            }
+    	   
     }
 	if (idle && !cooling && mode != "idle") {
-		sendEvent(name: "thermostatOperatingState", value: "idle")
-        sendEvent(name: "switch", value: "idle")
-        makeJSONBroadlinkRMBridgeRequest("$offCode")
-
-
-
+            if(current != "idle"){
+                makeJSONBroadlinkRMBridgeRequest("$offCode")
+                sendEvent(name: "thermostatOperatingState", value: "idle")
+                sendEvent(name: "switch", value: "idle")
+                
+            }
+		
 	}
 }
 
 def setLevel(value) {
 	log.debug "setLevel()"
-
-
 	sendEvent(name:"temperature", value: value)
+     evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
 }
 
 def up() {
