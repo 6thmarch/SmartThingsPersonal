@@ -164,27 +164,34 @@ def parse(String description) {
 }
 
 
-def evaluate(temp,coolingSetpoint) {
-	log.debug "evaluate($temp, $coolingSetpoint)"
+def evaluate(temp,newCoolingSetpoint, newState) {
+	log.debug "evaluate($temp, $newCoolingSetpoint)"
 	def threshold = 1.0
 	def current = device.currentValue("thermostatOperatingState")
-	def mode = device.currentValue("switch")
+	def mode = newState
 
 	def cooling = false
 	def idle = false
-	
+	log.debug "evaluate in thermostat"
 	if (mode in ["cool","auto", "on", "idle"]) {
-		if (temp - coolingSetpoint >= 0) {
-			cooling = true
-            if(current != "cooling"){
-                makeJSONBroadlinkRMBridgeRequest(getSetTempCode(coolingSetpoint))
-                sendEvent(name: "thermostatOperatingState", value: "cooling")
+		if (temp - newCoolingSetpoint >= 0) {
+        	if(newCoolingSetpoint != device.currentValue("coolingSetpoint") | device.currentValue("switch") != "on"){
+                makeJSONBroadlinkRMBridgeRequest(getSetTempCode(newCoolingSetpoint))
              	sendEvent(name: "switch", value: "on")
+                sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
+
             }
-            
+      		cooling = true
+            sendEvent(name: "thermostatOperatingState", value: "cooling")
+
+
+
+
 		}
-		else if (coolingSetpoint - temp >= threshold) {
-			idle = true
+		else if (newCoolingSetpoint - temp >= threshold) {
+            sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
+            idle = true
+            
 		}
 		sendEvent(name: "thermostatSetpoint", value: coolingSetpoint)
 	}
@@ -192,6 +199,9 @@ def evaluate(temp,coolingSetpoint) {
             if(current != "off"){
                 makeJSONBroadlinkRMBridgeRequest("$offCode")
                 sendEvent(name: "thermostatOperatingState", value: "off")
+                                sendEvent(name: "switch", value: "off")
+
+
             }
     	   
     }
@@ -209,7 +219,7 @@ def evaluate(temp,coolingSetpoint) {
 def setLevel(value) {
 	log.debug "setLevel()"
 	sendEvent(name:"temperature", value: value)
-     evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+     evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 }
 
 def up() {
@@ -217,8 +227,8 @@ def up() {
 
 	def ts = device.currentState("coolingSetpoint")
 	def degreesC = ts ? ts.integerValue + 1 : 24 
-	sendEvent(name:"coolingSetpoint", value: degreesC)
-   	evaluate(device.currentValue("temperature"), degreesC)
+//	sendEvent(name:"coolingSetpoint", value: degreesC)
+   	evaluate(device.currentValue("temperature"), degreesC, "on")
 }
 
 def down() {
@@ -226,29 +236,29 @@ def down() {
 
 	def ts = device.currentState("coolingSetpoint")
 	def degreesC = ts ? ts.integerValue - 1 : 24 
-	sendEvent(name:"coolingSetpoint", value: degreesC)
-  	evaluate(device.currentValue("temperature"), degreesC)
+//	sendEvent(name:"coolingSetpoint", value: degreesC)
+  	evaluate(device.currentValue("temperature"), degreesC, "on")
 }
 
 def setTemperature(value) {
 	sendEvent(name:"temperature", value: value)
-    evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+    evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 
 
 }
 
 def setCoolingSetpoint(Double degreesC) {
 	log.debug "setCoolingSetpoint($degreesC)"
-	sendEvent(name: "coolingSetpoint", value: degreesC)
-	evaluate(device.currentValue("temperature"), degreesC)
+//	sendEvent(name: "coolingSetpoint", value: degreesC)
+	evaluate(device.currentValue("temperature"), degreesC, "on")
 
 
 }
 
 def off() {
 	log.debug "off()"	
-	sendEvent(name: "switch", value: "off")
-	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+	//sendEvent(name: "switch", value: "off")
+	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "off")
 
 
 }
@@ -260,14 +270,14 @@ def off() {
 
 def on() {
 	log.debug "on()"
-	sendEvent(name: "switch", value: "on")
-	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+	//sendEvent(name: "switch", value: "on")
+	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 }
 
 def cool() {
 	log.debug "cool()"
 	sendEvent(name: "switch", value: "cool")
-	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 }
 
 def getSetTempCode(value){

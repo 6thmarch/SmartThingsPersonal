@@ -48,6 +48,7 @@ metadata {
     category: "Convenience",
     author: "Benjamin Yam") {
 		capability "Switch"
+        capability "Actuator"
         capability "Momentary"
 	}
     
@@ -78,6 +79,14 @@ def push() {
 	sendEvent(name: "momentary", value: "pushed", isStateChange: true)
     sendGetRequest(message) 
 
+}
+
+def on() {
+	push()
+}
+
+def off() {
+	push()
 }
 
 //Send GET Request
