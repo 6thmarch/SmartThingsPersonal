@@ -7,7 +7,7 @@
  * 	Description:
  * 		RM Tasker Plugin Virtual Group Switch is a SmartThings Device Type that allows you to turn on or off devices 
  * 		by sending Infrared or RF signal from Broadlink RM device to control your home devices.
- * 		This device requires Android RM Bridge to be installed and started in an android device within the 
+ * 		This device requires RM Tasker Plugin to be installed and started in an android device within the 
  * 		same wi-fi network as the Broadlink RM device.
  * 
  * 	Requirements:
