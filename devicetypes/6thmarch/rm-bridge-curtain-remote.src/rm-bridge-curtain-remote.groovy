@@ -1,0 +1,146 @@
+/**
+ *  RM Bridge Curtain Remote
+ *
+ *  Copyright 2015 Benjamin Yam
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ */
+ 
+ preferences {
+       section("RM Bridge Server Configuration"){
+       input "server", "text", title: "Server Address",
+              description: "This is the domain or IP Address of the RM Bridge Server.", defaultValue: '',
+              required: true, displayDuringSetup: true
+
+       input "port", "text", title: "Port Number",
+              description: "This is the port number of the RM Bridge Server.", defaultValue: '',
+              required: true, displayDuringSetup: true
+              
+       input "username", "text", title: "Username",
+              description: "This is the username for authentication for RM Bridge.", defaultValue: '',
+              required: false, displayDuringSetup: true
+              
+       input "passwd", "password", title: "Password",
+              description: "This is the password for authentication for RM Bridge.", defaultValue: '',
+              required: false, displayDuringSetup: true
+       }          
+       
+               
+               input "curtainOpenCode", "text", title: "Curtain Open Code",
+              description: "This is the code to send to RM Bridge to open the curtain.",
+               required: true, displayDuringSetup: true
+              
+              input "curtainCloseCode", "text", title: "Curtain Close Code",
+              description: "This is the code to send to RM Bridge to close the curtain.",
+               required: true, displayDuringSetup: true
+              
+              input "curtainPauseCode", "text", title: "Curtain Pause Code",
+              description: "This is the code to send to RM Bridge to pause the curtain.",
+               required: false, displayDuringSetup: true
+	
+     }
+ 
+metadata {
+	definition (name: "RM Bridge Curtain Remote", namespace: "6thmarch", author: "Benjamin Yam") {
+		capability "Momentary"
+        capability "Switch"
+        capability "Refresh"
+        capability "Actuator"
+        capability "Button"
+	}
+
+	tiles {
+		standardTile("openState", "device.switch", inactiveLabel: false, decoration: "flat", canChangeBackground: true, canChangeIcon: true) {
+	        state "off", label: "Closed", action:"switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+            state "on", label: "Opened", action:"switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+        }
+        
+        standardTile("pause", "device.button", inactiveLabel:false, decoration:"flat") {
+            state "default", label: "pause",  icon:"st.switches.switch.off", action:"pause", backgroundColor: "#ffffff"
+        }  
+      
+        
+		main "openState"
+		details(["openState", "pause"])
+	}
+    
+    command "pause"
+    
+}
+
+// parse events into attributes
+def parse(String description) {
+	log.debug "Parsing '${description}'"
+	// TODO: handle 'volume' attribute
+	// TODO: handle 'channel' attribute
+	// TODO: handle 'power' attribute
+	// TODO: handle 'picture' attribute
+	// TODO: handle 'sound' attribute
+	// TODO: handle 'movieMode' attribute
+
+}
+
+def on() {
+	log.debug "Executing 'powerOn'"
+	// TODO: handle 'powerOn' command
+    api('powerOn', [], {
+        sendEvent(name: 'drawnState', value: 'on')
+    })
+
+}
+
+def off() {
+	log.debug "Executing 'powerOff'"
+	// TODO: handle 'powerOff' command
+    api('powerOff', [], {
+        sendEvent(name: 'drawnState', value: 'off')
+    })
+
+}
+
+def pause(){
+ api('pause', [], {})
+}
+
+// Methods stolen/modified from https://github.com/Dianoga
+def api(method, args = [], success = {}) {
+def methods = [
+'powerOn': [code: "$curtainOpenCode", type: 'get'],
+'powerOff': [code: "$curtainCloseCode", type: 'get'],
+'pause': [code: "$curtainPauseCode", type: 'get']
+
+
+    ]
+def request = methods.getAt(method)
+    doRequest(request.code, args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    
+def params = [
+uri: "http://$username:$passwd@$server:$port/code/",
+path: "$code",
+headers: [
+'Accept': "application/json"
+        ],
+body: args
+    ]
+if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
+    }
+}
