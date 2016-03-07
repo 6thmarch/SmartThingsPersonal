@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Thermostat 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Thermostat is a SmartThings Device Type that act as a virtual thermostat and controls a air conditioner.
@@ -49,6 +49,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  */
 
   import groovy.transform.Field
@@ -128,9 +129,9 @@ metadata {
 			state "cool", label:'${currentValue}°C cool', unit:"C", backgroundColor:"#ffffff"
 		}
         standardTile("mode", "device.switch", inactiveLabel: false, decoration: "flat") {
-			state "off", label:'${name}', action:"thermostat.on", backgroundColor:"#ffffff"
+			state "off", label:'${name}', action:"on", backgroundColor:"#ffffff"
 			state "on", label:'${name}', action:"thermostat.off", backgroundColor:"#269bd2"
-            state "idle", label:'${name}', action:"thermostat.on", backgroundColor:"#269bd2"
+            state "idle", label:'${name}', action:"thermostat.off", backgroundColor:"#269bd2"
 			//state "auto", label:'${name}', action:"thermostat.off", backgroundColor:"#79b821"
 		}
 		standardTile("up", "device.temperature", inactiveLabel: false, decoration: "flat") {
@@ -154,7 +155,7 @@ def parse(String description) {
     if(msg.containsKey("temperature"))
     {
        	Float temp = msg.temperature.toFloat()
-   	    sendEvent(name: "temperature", value: temp.round(1))
+   	    sendEvent(name: "temperature", value: temp.trunc())
          evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
     }
 
@@ -167,14 +168,15 @@ def evaluate(temp,newCoolingSetpoint, newState) {
 	def threshold = 1.0
 	def current = device.currentValue("thermostatOperatingState")
 	def mode = newState
+    newCoolingSetpoint = newCoolingSetpoint.round()
 
 	def cooling = false
 	def idle = false
-	log.debug "evaluate in thermostat"
+	log.debug "onTemp${newCoolingSetpoint}"
 	if (mode in ["cool","auto", "on", "idle"]) {
 		if (temp - newCoolingSetpoint >= 0) {
         	if(newCoolingSetpoint != device.currentValue("coolingSetpoint") | device.currentValue("switch") != "on"){
-                makeJSONBroadlinkRMBridgeRequest(getSetTempCode(newCoolingSetpoint))
+                api("onTemp${newCoolingSetpoint}", [], {})
              	sendEvent(name: "switch", value: "on")
                 sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
 
@@ -182,11 +184,8 @@ def evaluate(temp,newCoolingSetpoint, newState) {
       		cooling = true
             sendEvent(name: "thermostatOperatingState", value: "cooling")
 
-
-
-
 		}
-		else if (newCoolingSetpoint - temp >= threshold) {
+		else if (newCoolingSetpoint - temp >= 0) {
             sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
             idle = true
             
@@ -195,7 +194,7 @@ def evaluate(temp,newCoolingSetpoint, newState) {
 	}
     else if(mode == "off"){
             if(current != "off"){
-                makeJSONBroadlinkRMBridgeRequest("$offCode")
+              	api('powerOff', [], {})
                 sendEvent(name: "thermostatOperatingState", value: "off")
                                 sendEvent(name: "switch", value: "off")
 
@@ -205,7 +204,7 @@ def evaluate(temp,newCoolingSetpoint, newState) {
     }
 	if (idle && !cooling && mode != "idle") {
             if(current != "idle"){
-                makeJSONBroadlinkRMBridgeRequest("$offCode")
+              	api('powerOff', [], {})
                 sendEvent(name: "thermostatOperatingState", value: "idle")
                 sendEvent(name: "switch", value: "idle")
                 
@@ -278,75 +277,57 @@ def cool() {
 	evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 }
 
-def getSetTempCode(value){
-	if(value <= 16){
-    	return "${tempCode16}"
-    }
-    else if(value == 17){
-	   	return "${tempCode17}"
-    }
-    else if(value == 18){
-	   	return "${tempCode18}"
-    }
-    else if(value == 19){
-	   	return "${tempCode19}"
-    }
-    else if(value == 20){
-	   	return "${tempCode20}"
-    }
-    else if(value == 21){
-	   	return "${tempCode21}"
-    }
-    else if(value == 22){
-	   	return "${tempCode22}"
-    }
-    else if(value == 23){
-	   	return "${tempCode23}"
-    }
-    else if(value == 24){
-	   	return "${tempCode24}"
-    }
-    else if(value == 25){
-	   	return "${tempCode25}"
-    }
-    else if(value == 26){
-	   	return "${tempCode26}"
-    }
-    else if(value == 27){
-	   	return "${tempCode27}"
-    }
-    else if(value == 28){
-	   	return "${tempCode28}"
-    }
-    else if(value == 29){
-	   	return "${tempCode29}"
-    }
-    else if(value == 30){
-	   	return "${tempCode30}"
-    }
-    else if(value >= 31){
-	   	return "${tempCode31}"
-    }
-}
 
-//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
-def makeJSONBroadlinkRMBridgeRequest(String code) {
-    log.debug "Sending code: ${code}"
-    def params = [
-        //uri:  "http://$username:$passwd@$server:$port/code/",
-        //path: "$code",
-        uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal",
+def api(method, args = [], success = {}) {
 
-        contentType: 'application/json'        
+def methods = [
+'powerOn': [code: onCode, type: 'post'],
+'powerOff': [code: offCode, type: 'post'],
+'onTemp16': [code: tempCode16, type: 'post'],
+'onTemp17': [code: tempCode17, type: 'post'],
+'onTemp18': [code: tempCode18, type: 'post'],
+'onTemp19': [code: tempCode19, type: 'post'],
+'onTemp20': [code: tempCode20, type: 'post'],
+'onTemp21': [code: tempCode21, type: 'post'],
+'onTemp22': [code: tempCode22, type: 'post'],
+'onTemp23': [code: tempCode23, type: 'post'],
+'onTemp24': [code: tempCode24, type: 'post'],
+'onTemp25': [code: tempCode25, type: 'post'],
+'onTemp26': [code: tempCode26, type: 'post'],
+'onTemp27': [code: tempCode27, type: 'post'],
+'onTemp28': [code: tempCode28, type: 'post'],
+'onTemp29': [code: tempCode29, type: 'post'],
+'onTemp30': [code: tempCode30, type: 'post'],
+'onTemp31': [code: tempCode31, type: 'post'],
     ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
-
+def request = methods.getAt(method)
+    doRequest(request.code, args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    log.debug "repeatVal: $repeatVal"
+def params = [
+uri: "http://$server:$port",
+path: "/send",
+headers: [
+'Accept': "application/json"
+        ],
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+    ]
+	if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
     }
 }
+
+

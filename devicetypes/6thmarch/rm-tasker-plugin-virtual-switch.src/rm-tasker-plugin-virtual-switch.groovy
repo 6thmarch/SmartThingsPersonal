@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Switch 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Switch is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-07	V1.0.1	Switch from HTTP GET request to HTTP POST request
  */
 
 metadata {
@@ -115,32 +116,52 @@ metadata {
 
 def on() {
 	sendEvent(name: "switch", value: "on")
-    makeJSONBroadlinkRMBridgeRequest("$onCode")
+         	api('powerOn', ['repeat' : repeatVal], {})
+
+
 }
 
 def off() {
 	sendEvent(name: "switch", value: "off")
-    makeJSONBroadlinkRMBridgeRequest("$offCode")
+        	api('powerOff', ['repeat' : repeatVal], {})
+
+
 }
 
-//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
-def makeJSONBroadlinkRMBridgeRequest(String code) {
-    log.debug "Sending code: $code, deviceMacId: $deviceMacId, repeatVal: $repeatVal"
-    //log.debug "url: http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal"
-    def params = [
-        //uri:  "http://$username:$passwd@$server:$port/code/",
-        uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal",
-        //path: "$code",
-        contentType: 'application/json'        
-    ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "status: ${resp.data.status}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
 
+def api(method, args = [], success = {}) {
+
+def methods = [
+'powerOn': [code: onCode, type: 'post'],
+'powerOff': [code: offCode, type: 'post']
+    ]
+def request = methods.getAt(method)
+    doRequest(request.code, args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    log.debug "repeatVal: $repeatVal"
+def params = [
+uri: "http://$server:$port",
+path: "/send",
+headers: [
+'Accept': "application/json"
+        ],
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+    ]
+	if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
     }
 }
+

@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Momentary Button Tile 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Momentary Button Tile is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  */
  
 metadata {
@@ -117,7 +118,8 @@ def push() {
 	sendEvent(name: "switch", value: "on", isStateChange: true, display: false)
 	sendEvent(name: "switch", value: "off", isStateChange: true, display: false)
 	sendEvent(name: "momentary", value: "pushed", isStateChange: true)
-    makeJSONBroadlinkRMBridgeRequest("$code")
+        	api('push', ['repeat' : repeatVal], {})
+
 
 
 }
@@ -130,23 +132,38 @@ def off() {
 	push()
 }
 
-//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
-def makeJSONBroadlinkRMBridgeRequest(String code) {
-    log.debug "Sending code: $code"
-    def params = [
-//        uri:  "http://$username:$passwd@$server:$port/code/",
-//        path: "$code",
-        uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal",
-		contentType: 'application/json'        
-    ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
 
+def api(method, args = [], success = {}) {
+
+def methods = [
+'push': [code: code, type: 'post']
+    ]
+def request = methods.getAt(method)
+    doRequest(request.code, args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    log.debug "repeatVal: $repeatVal"
+def params = [
+uri: "http://$server:$port",
+path: "/send",
+headers: [
+'Accept': "application/json"
+        ],
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+    ]
+	if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
     }
 }

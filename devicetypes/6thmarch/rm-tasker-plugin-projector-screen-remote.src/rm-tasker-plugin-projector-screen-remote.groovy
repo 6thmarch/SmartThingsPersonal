@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Projector Screen Remote 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Projector Screen Remote  is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  */
  
  preferences {
@@ -153,31 +154,33 @@ def pause(){
  api('pause', [], {})
 }
 
-// Methods stolen/modified from https://github.com/Dianoga
+
 def api(method, args = [], success = {}) {
+
 def methods = [
-'powerOn': [code: "$projectorScreenDrawCode", type: 'get'],
-'powerOff': [code: "$projectorScreenRetractCode", type: 'get'],
-'pause': [code: "$projectorScreenPauseCode", type: 'get']
-
-
+'powerOn': [code: projectorScreenDrawCode, type: 'post'],
+'powerOff': [code: projectorScreenRetractCode, type: 'post'],
+'pause': [code: projectorScreenPauseCode, type: 'post']
     ]
 def request = methods.getAt(method)
     doRequest(request.code, args, request.type, success)
 }
 def doRequest(code, args, type, success) {
     log.debug "Calling $type : $code : $args"
-    
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    log.debug "repeatVal: $repeatVal"
 def params = [
-//uri: "http://$username:$passwd@$server:$port/code/",
-//path: "$code",
- uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code",
+uri: "http://$server:$port",
+path: "/send",
 headers: [
 'Accept': "application/json"
         ],
-body: args
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]
-if(type == 'post') {
+	if(type == 'post') {
        httpPostJson(params, success)
        log.debug success
     } else if (type == 'get') {

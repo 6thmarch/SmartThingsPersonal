@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Music Player Remote
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Music Player Remote is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-07	V1.0.1	Switch from HTTP Get request to HTTP Post request
  */
  
  preferences {
@@ -297,7 +298,6 @@ def volumeDown() {
    // makeJSONBroadlinkRMBridgeRequest("$volumeDownCode")
   api('volumeDown', [], {})
 
-
 }
 
 def previousTrack() {
@@ -403,84 +403,61 @@ def setLevel(Double newlevel){
     if(difference < 0 && numOfTimes > 0 )
     {
          log.info "volumeDown ${numOfTimes} times"
-   		 0.upto(numOfTimes, {
-    	 	 api('volumeDown', [], {})
-    	 })
+   		
+      	api('volumeDown', ['repeat' : numOfTimes], {})
+
+
      }
      else if(difference > 0 && numOfTimes > 0)
      {
      	log.info "volumeUp ${numOfTimes} times"
-   		  0.upto(numOfTimes,{
-   		  	api('volumeUp', [], {})
-    	 })
+   		
+        api('volumeUp', ['repeat' : numOfTimes], {})
      }
 
 
 }
 
-
-
-def makeJSONBroadlinkRMBridgeRequest(String code) {
-        
-    def params = [
-        uri:  "http://$username:$passwd@$server:$port/code/",
-        path: "$code",
-        contentType: 'application/json'        
-    ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
-    }
-}
-
-
-
-// Methods stolen/modified from https://github.com/Dianoga
 def api(method, args = [], success = {}) {
+
 def methods = [
-'powerOn': [code: "$powerOnCode", type: 'get'],
-'powerOff': [code: "$powerOffCode", type: 'get'],
-'playing': [code: "/playing", type: 'get'],
-'play': [code: "$playCode", type: 'get'],
-'pause': [code: "$pauseCode", type: 'get'],
-'nextTrack': [code: "$nextTrackCode", type: 'get'],
-'previousTrack': [code: "$previousTrackCode", type: 'get'],
-'mute': [code: "$muteCode", type: 'get'],
-'getVolume': [code: "/volume", type: 'get'],
-'setVolume': [code: "/volume", type: 'get'],
-'volumeDown': [code: "$volumeDownCode", type: 'get'],
-'volumeUp': [code: "$volumeUpCode", type: 'get'],
-'inputBT': [code: "$btInputCode", type: 'get'],
-'inputLine': [code: "$lineInputCode", type: 'get'],
-'inputAux1': [code: "$aux1InputCode", type: 'get'],
-'inputAux2': [code: "$aux2InputCode", type: 'get'],
-'inputUSB': [code: "$usbInputCode", type: 'get']
-
-
+'powerOn': [code: "$powerOnCode", type: 'post'],
+'powerOff': [code: "$powerOffCode", type: 'post'],
+'playing': [code: "/playing", type: 'post'],
+'play': [code: "$playCode", type: 'post'],
+'pause': [code: "$pauseCode", type: 'post'],
+'nextTrack': [code: "$nextTrackCode", type: 'post'],
+'previousTrack': [code: "$previousTrackCode", type: 'post'],
+'mute': [code: "$muteCode", type: 'post'],
+'getVolume': [code: "/volume", type: 'post'],
+'setVolume': [code: "/volume", type: 'post'],
+'volumeDown': [code: "$volumeDownCode", type: 'post'],
+'volumeUp': [code: "$volumeUpCode", type: 'post'],
+'inputBT': [code: "$btInputCode", type: 'post'],
+'inputLine': [code: "$lineInputCode", type: 'post'],
+'inputAux1': [code: "$aux1InputCode", type: 'post'],
+'inputAux2': [code: "$aux2InputCode", type: 'post'],
+'inputUSB': [code: "$usbInputCode", type: 'post']
     ]
 def request = methods.getAt(method)
     doRequest(request.code, args, request.type, success)
 }
 def doRequest(code, args, type, success) {
     log.debug "Calling $type : $code : $args"
-    
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    log.debug "repeatVal: $repeatVal"
 def params = [
-//uri: "http://$username:$passwd@$server:$port/code/",
-//path: "$code",
-uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code",
-
-
+uri: "http://$server:$port",
+path: "/send",
 headers: [
 'Accept': "application/json"
         ],
-body: args
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]
-if(type == 'post') {
+	if(type == 'post') {
        httpPostJson(params, success)
        log.debug success
     } else if (type == 'get') {

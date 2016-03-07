@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Group Switch 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Group Switch is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-08	V1.0.1	Switch HTTP GET request to HTTP POST request
  */
  import groovy.transform.Field
  @Field final int MAX_CODES_PER_GROUP = 10 //on() and off() need to be changed if this value is edited.
@@ -134,34 +135,44 @@ def on() {
 
             
     if("${onCode1}" != "null" && "${onDeviceMacId1}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId1, onCode1, onRepeatVal1)
+        	api('onCode1', ['deviceMacId': onDeviceMacId1, 'repeat' : onRepeatVal1], {})
+
     }
      if("${onCode2}" != "null" && "${onDeviceMacId2}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId2, onCode2, onRepeatVal2)
+        	api('onCode2', ['deviceMacId': onDeviceMacId2, 'repeat' : onRepeatVal2], {})
+
     }
      if("${onCode3}" != "null" && "${onDeviceMacId3}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId3, onCode3, onRepeatVal3)
+        	api('onCode3', ['deviceMacId': onDeviceMacId3, 'repeat' : onRepeatVal3], {})
+
     }
      if("${onCode4}" != "null" && "${onDeviceMacId4}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId4, onCode4, onRepeatVal4)
+        	api('onCode4', ['deviceMacId': onDeviceMacId4, 'repeat' : onRepeatVal4], {})
+
     }
      if("${onCode5}" != "null" && "${onDeviceMacId5}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId5, onCode5, onRepeatVal5)
+        	api('onCode5', ['deviceMacId': onDeviceMacId5, 'repeat' : onRepeatVal5], {})
+
     }
      if("${onCode6}" != "null" && "${onDeviceMacId6}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId6, onCode6, onRepeatVal6)
+        	api('onCode6', ['deviceMacId': onDeviceMacId6, 'repeat' : onRepeatVal6], {})
+
     }
      if("${onCode7}" != "null" && "${onDeviceMacId7}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId7, onCode7, onRepeatVal7)
+        	api('onCode7', ['deviceMacId': onDeviceMacId7, 'repeat' : onRepeatVal7], {})
+
     }
      if("${onCode8}" != "null" && "${onDeviceMacId8}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId8, onCode8, onRepeatVal8)
+        	api('onCode8', ['deviceMacId': onDeviceMacId8, 'repeat' : onRepeatVal8], {})
+
     }
      if("${onCode9}" != "null" && "${onDeviceMacId9}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId9, onCode9, onRepeatVal9)
+        	api('onCode9', ['deviceMacId': onDeviceMacId9, 'repeat' : onRepeatVal9], {})
+
     }
      if("${onCode10}" != "null" && "${onDeviceMacId10}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(onDeviceMacId10, onCode10, onRepeatVal10)
+        	api('onCode10', ['deviceMacId': onDeviceMacId10, 'repeat' : onRepeatVal10], {})
+
     }
     
     
@@ -171,57 +182,109 @@ def off() {
 	sendEvent(name: "switch", value: "off")
     
     if("${offCode1}" != "null" && "${offDeviceMacId1}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId1, offCode1, offRepeatVal1)
+        	api('offCode1', ['deviceMacId': offDeviceMacId1, 'repeat' : offRepeatVal1], {})
+
     }
         if("${offCode2}" != "null" && "${offDeviceMacId2}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId2, offCode2, offRepeatVal2)
+        	api('offCode2', ['deviceMacId': offDeviceMacId2, 'repeat' : offRepeatVal2], {})
+
     }
         if("${offCode3}" != "null" && "${offDeviceMacId3}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId3, offCode3, offRepeatVal3)
+        	api('offCode3', ['deviceMacId': offDeviceMacId3, 'repeat' : offRepeatVal3], {})
+
     }
         if("${offCode4}" != "null" && "${offDeviceMacId4}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId4, offCode4, offRepeatVal4)
+        	api('offCode4', ['deviceMacId': offDeviceMacId4, 'repeat' : offRepeatVal4], {})
+
     }
         if("${offCode5}" != "null" && "${offDeviceMacId5}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId5, offCode5, offRepeatVal5)
+        	api('offCode5', ['deviceMacId': offDeviceMacId5, 'repeat' : offRepeatVal5], {})
+
     }
         if("${offCode6}" != "null" && "${offDeviceMacId6}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId6, offCode6, offRepeatVal6)
+        	api('offCode6', ['deviceMacId': offDeviceMacId6, 'repeat' : offRepeatVal6], {})
+
     }
         if("${offCode7}" != "null" && "${offDeviceMacId7}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId7, offCode7, offRepeatVal7)
+        	api('offCode7', ['deviceMacId': offDeviceMacId7, 'repeat' : offRepeatVal7], {})
+
     }
         if("${offCode8}" != "null" && "${offDeviceMacId8}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId8, offCode8, offRepeatVal8)
+        	api('offCode8', ['deviceMacId': offDeviceMacId8, 'repeat' : offRepeatVal8], {})
+
     }
         if("${offCode9}" != "null" && "${offDeviceMacId9}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId9, offCode9, offRepeatVal9)
+        	api('offCode9', ['deviceMacId': offDeviceMacId9, 'repeat' : offRepeatVal9], {})
+
     }
         if("${offCode10}" != "null" && "${offDeviceMacId10}" != "null" ){
-         makeJSONBroadlinkRMBridgeRequest(offDeviceMacId10, offCode10, offRepeatVal10)
+        	api('offCode10', ['deviceMacId': offDeviceMacId10, 'repeat' : offRepeatVal10], {})
+
     }
 
 }
 
-//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
-def makeJSONBroadlinkRMBridgeRequest(String deviceMacId, int code, int repeatVal) {
-    log.debug "Sending code: ${code}"
-    log.debug "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal"
-    def params = [
-        //uri:  "http://$username:$passwd@$server:$port/code/",
-        //path: "$code",
-        uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal",
-        contentType: 'application/json'        
+def api(method, args = [], success = {}) {
+
+def methods = [
+'onCode1': [code: onCode1, type: 'post'],
+'onCode2': [code: onCode2, type: 'post'],
+'onCode3': [code: onCode3, type: 'post'],
+'onCode4': [code: onCode4, type: 'post'],
+'onCode5': [code: onCode5, type: 'post'],
+'onCode6': [code: onCode6, type: 'post'],
+'onCode7': [code: onCode7, type: 'post'],
+'onCode8': [code: onCode8, type: 'post'],
+'onCode9': [code: onCode9, type: 'post'],
+'onCode10': [code: onCode10, type: 'post'],
+'offCode1': [code: offCode1, type: 'post'],
+'offCode2': [code: offCode2, type: 'post'],
+'offCode3': [code: offCode3, type: 'post'],
+'offCode4': [code: offCode4, type: 'post'],
+'offCode5': [code: offCode5, type: 'post'],
+'offCode6': [code: offCode6, type: 'post'],
+'offCode7': [code: offCode7, type: 'post'],
+'offCode8': [code: offCode8, type: 'post'],
+'offCode9': [code: offCode9, type: 'post'],
+'offCode10': [code: offCode10, type: 'post']
     ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
-
+def request = methods.getAt(method)
+    doRequest(request.code,  args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    def deviceMacId
+    if(args['deviceMacId'])
+    {
+    	deviceMacId = args['deviceMacId']
+    }
+    else
+    {
+    log.debug "Error: Device Mac ID not supplied"
+    }
+   // log.debug "repeatVal: $repeatVal"
+def params = [
+uri: "http://$server:$port",
+path: "/send",
+headers: [
+'Accept': "application/json"
+        ],
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+    ]
+	if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
     }
 }
+
 

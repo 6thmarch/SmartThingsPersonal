@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Group Momentary Button Tile
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Description:
  * 		RM Tasker Plugin Group Momentary Button Tile is a SmartThings Device Type that allows you to turn on or off devices 
@@ -50,6 +50,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-02-29  V1.0.0  Initial release
+ *	2016-03-08	V1.0.1	Switch HTTP GET request to HTTP POST request
  */
  
   import groovy.transform.Field
@@ -127,34 +128,42 @@ def push() {
 	sendEvent(name: "momentary", value: "pushed", isStateChange: true)
     
     if("${code1}" != "null" && "${deviceMacId1}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId1, code1, repeatVal1)
+        	api('code1', ['deviceMacId': deviceMacId1, 'repeat' : repeatVal1], {})
     }
     if("${code2}" != "null" && "${deviceMacId2}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId2, code2, repeatVal2)
+        	api('code2', ['deviceMacId': deviceMacId2, 'repeat' : repeatVal2], {})
     }
     if("${code3}" != "null" && "${deviceMacId3}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId3, code3, repeatVal3)
+        	api('code3', ['deviceMacId': deviceMacId3, 'repeat' : repeatVal3], {})
+
     }
     if("${code4}" != "null" && "${deviceMacId4}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId4, code4, repeatVal4)
+        	api('code4', ['deviceMacId': deviceMacId4, 'repeat' : repeatVal4], {})
+
     }
     if("${code5}" != "null" && "${deviceMacId5}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId5, code5, repeatVal5)
+        	api('code5', ['deviceMacId': deviceMacId5, 'repeat' : repeatVal5], {})
+
     }
     if("${code6}" != "null" && "${deviceMacId6}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId6, code6, repeatVal6)
+        	api('code6', ['deviceMacId': deviceMacId6, 'repeat' : repeatVal6], {})
+
     }
     if("${code7}" != "null" && "${deviceMacId7}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId7, code7, repeatVal7)
+        	api('code7', ['deviceMacId': deviceMacId7, 'repeat' : repeatVal7], {})
+
     }
     if("${code8}" != "null" && "${deviceMacId8}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId8, code8, repeatVal8)
+        	api('code8', ['deviceMacId': deviceMacId8, 'repeat' : repeatVal8], {})
+
     }
     if("${code9}" != "null" && "${deviceMacId9}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId9, code9, repeatVal9)
+        	api('code9', ['deviceMacId': deviceMacId9, 'repeat' : repeatVal9], {})
+
     }
     if("${code10}" != "null" && "${deviceMacId10}" != "null"){
-         makeJSONBroadlinkRMBridgeRequest(deviceMacId10, code10, repeatVal10)
+        	api('code10', ['deviceMacId': deviceMacId10, 'repeat' : repeatVal10], {})
+
     }
 
 
@@ -168,23 +177,57 @@ def off() {
 	push()
 }
 
-//Send code to RM Bridge Server to trigger sending of IR/RF signal from Broadlink RM device.
-def makeJSONBroadlinkRMBridgeRequest(String deviceMacId, int code, int repeatVal) {
-    log.debug "Sending code: $code"
-    def params = [
-        //uri:  "http://$username:$passwd@$server:$port/code/",
-        //path: "$code",
-        uri: "http://$server:$port/send?deviceMac=$deviceMacId&codeId=$code&repeat=$repeatVal",
-        contentType: 'application/json'        
-    ]
-    try {
-        httpGet(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-            log.debug "code: ${resp.data.code}"
-            log.debug "msg: ${resp.data.msg}"
-        }
-    } catch (e) {
-        log.error "error: $e"
 
+def api(method, args = [], success = {}) {
+
+def methods = [
+'code1': [code: code1, type: 'post'],
+'code2': [code: code2, type: 'post'],
+'code3': [code: code3, type: 'post'],
+'code4': [code: code4, type: 'post'],
+'code5': [code: code5, type: 'post'],
+'code6': [code: code6, type: 'post'],
+'code7': [code: code7, type: 'post'],
+'code8': [code: code8, type: 'post'],
+'code9': [code: code9, type: 'post'],
+'code10': [code: code10, type: 'post']
+    ]
+def request = methods.getAt(method)
+    doRequest(request.code,  args, request.type, success)
+}
+def doRequest(code, args, type, success) {
+    log.debug "Calling $type : $code : $args"
+    def repeatVal = 1
+    if(args['repeat']){
+    	repeatVal = args['repeat']
+    }
+    def deviceMacId
+    if(args['deviceMacId'])
+    {
+    	deviceMacId = args['deviceMacId']
+    }
+    else
+    {
+    log.debug "Error: Device Mac ID not supplied"
+    }
+   // log.debug "repeatVal: $repeatVal"
+def params = [
+uri: "http://$server:$port",
+path: "/send",
+headers: [
+'Accept': "application/json"
+        ],
+query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+    ]
+	if(type == 'post') {
+       httpPostJson(params, success)
+       log.debug success
+    } else if (type == 'get') {
+       httpGet(params, success)
+       log.debug success
+    } else if (type == 'put') {
+    	httpPutJson(params, success)
+        log.debug success
     }
 }
+
