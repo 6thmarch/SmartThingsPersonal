@@ -168,7 +168,10 @@ def evaluate(temp,newCoolingSetpoint, newState) {
 	def threshold = 1.0
 	def current = device.currentValue("thermostatOperatingState")
 	def mode = newState
-    newCoolingSetpoint = newCoolingSetpoint.round()
+    if(newCoolingSetpoint != null)
+    {
+	   newCoolingSetpoint = newCoolingSetpoint
+    }
 
 	def cooling = false
 	def idle = false
