@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Group Switch 
- *	Version : 1.0.1
+ *	Version : 1.0.2
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Group Switch is a SmartThings Device Type that allows you to turn on or off devices 
@@ -51,6 +51,7 @@
  *
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch HTTP GET request to HTTP POST request
+ *	2016-03-23	V1.0.2	Bug fix
  */
  import groovy.transform.Field
  @Field final int MAX_CODES_PER_GROUP = 10 //on() and off() need to be changed if this value is edited.
@@ -92,7 +93,7 @@ metadata {
               required: false, displayDuringSetup: true
                        
               input "onDeviceMacId${it}", "text", title: "ON Device Mac ID ${it}",
-              description: "This is the device MAC ID of the RM device to send the code. e.g. xx:xx:xx:xx:xx:xx",
+              description: "This is the device MAC ID of the RM device to send the code. e.g. xx:xx:xx:xx:xx:xx", defaultValue: '00:00:00:00:00:00',
               required: true, displayDuringSetup: true
               
       		 input "onRepeatVal${it}", "number", title: "ON Repeat Value ${it}",
@@ -104,7 +105,7 @@ metadata {
               required: false, displayDuringSetup: true
               
               input "offDeviceMacId${it}", "text", title: "OFF Device Mac ID ${it}",
-              description: "This is the device MAC ID of the RM device to send the code. e.g. xx:xx:xx:xx:xx:xx",
+              description: "This is the device MAC ID of the RM device to send the code. e.g. xx:xx:xx:xx:xx:xx", defaultValue: '00:00:00:00:00:00',
               required: true, displayDuringSetup: true
               
       		 input "offRepeatVal${it}", "number", title: "OFF Repeat Value ${it}",

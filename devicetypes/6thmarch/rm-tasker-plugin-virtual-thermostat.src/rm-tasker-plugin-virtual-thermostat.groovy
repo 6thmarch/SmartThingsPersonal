@@ -156,7 +156,7 @@ def parse(String description) {
     {
        	Float temp = msg.temperature.toFloat()
    	    sendEvent(name: "temperature", value: temp.trunc())
-         evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"))
+        evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), device.currentValue("switch"))
     }
 
 
