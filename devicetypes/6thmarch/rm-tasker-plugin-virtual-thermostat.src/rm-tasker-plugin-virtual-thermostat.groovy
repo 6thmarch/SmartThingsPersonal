@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Thermostat 
- *	Version : 1.0.1
+ *	Version : 1.0.2
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Thermostat is a SmartThings Device Type that act as a virtual thermostat and controls a air conditioner.
@@ -50,6 +50,7 @@
  *
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
+ *	2016-03-25	V1.0.2	Bug fixes
  */
 
   import groovy.transform.Field
