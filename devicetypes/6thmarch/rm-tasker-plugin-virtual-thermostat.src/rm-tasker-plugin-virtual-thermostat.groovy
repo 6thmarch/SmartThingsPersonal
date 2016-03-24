@@ -154,8 +154,8 @@ def parse(String description) {
 	Map msg = stringToMap(description)
     if(msg.containsKey("temperature"))
     {
-       	Float temp = msg.temperature.toFloat()
-   	    sendEvent(name: "temperature", value: temp.trunc())
+       	double temp = msg.temperature.toDouble()
+   	    sendEvent(name: "temperature", value: temp.intValue())
         evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), device.currentValue("switch"))
     }
 
@@ -244,13 +244,12 @@ def setTemperature(value) {
 	sendEvent(name:"temperature", value: value)
     evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 
-
 }
 
 def setCoolingSetpoint(Double degreesC) {
 	log.debug "setCoolingSetpoint($degreesC)"
 //	sendEvent(name: "coolingSetpoint", value: degreesC)
-	evaluate(device.currentValue("temperature"), degreesC, "on")
+	evaluate(device.currentValue("temperature"), degreesC.intValue(), "on")
 
 
 }
