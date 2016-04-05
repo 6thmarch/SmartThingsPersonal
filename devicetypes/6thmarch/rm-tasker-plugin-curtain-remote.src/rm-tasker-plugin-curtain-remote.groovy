@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Curtain Remote 
- *	Version : 1.0.1
+ *	Version : 1.0.2
  * 
  * 	Requirements:
  * 		An android device (Android Box/Tablet/Phone) within the same wi-fi network as the Broadlink RM device, with RM Tasker Plugin HTTP Bridge installed and running.
@@ -45,6 +45,7 @@
  *
  *  2016-03-01  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
+ *	2016-03-31	V1.0.2	Include user authentication
  */
  
  preferences {
@@ -167,7 +168,8 @@ def params = [
 uri: "http://$server:$port",
 path: "/send",
 headers: [
-'Accept': "application/json"
+'Accept': "application/json",
+'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
 query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]

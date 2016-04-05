@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Thermostat 
- *	Version : 1.0.2
+ *	Version : 1.0.3
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Thermostat is a SmartThings Device Type that act as a virtual thermostat and controls a air conditioner.
@@ -51,6 +51,7 @@
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  *	2016-03-25	V1.0.2	Bug fixes
+ *	2016-03-31	V1.0.3	Include user authentication
  */
 
   import groovy.transform.Field
@@ -78,15 +79,15 @@ metadata {
               required: true, displayDuringSetup: true
 
        input "port", "text", title: "Port Number",
-              description: "This is the port number of Android RM Bridge Server.", defaultValue: '',
+              description: "This is the port number of RM Tasker Plugin HTTP Bridge.", defaultValue: '',
               required: true, displayDuringSetup: true
               
        input "username", "text", title: "Username",
-              description: "This is the username for authentication for Android RM Bridge.", defaultValue: '',
+              description: "This is the username for authentication for RM Tasker Plugin HTTP Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               
        input "passwd", "password", title: "Password",
-              description: "This is the password created for authentication for Android RM Bridge.", defaultValue: '',
+              description: "This is the password created for authentication for RM Tasker Plugin HTTP Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               }
        input "deviceMacId", "text", title: "Device Mac ID",
@@ -317,7 +318,9 @@ def params = [
 uri: "http://$server:$port",
 path: "/send",
 headers: [
-'Accept': "application/json"
+'Accept': "application/json",
+'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
+
         ],
 query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]

@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Group Momentary Button Tile
- *	Version : 1.0.2
+ *	Version : 1.0.3
  * 
  * 	Description:
  * 		RM Tasker Plugin Group Momentary Button Tile is a SmartThings Device Type that allows you to turn on or off devices 
@@ -52,6 +52,7 @@
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch HTTP GET request to HTTP POST request
  *	2016-03-23	V1.0.2	Bug fix
+ *	2016-03-31	V1.0.3	Include user authentication
  */
  
   import groovy.transform.Field
@@ -216,7 +217,8 @@ def params = [
 uri: "http://$server:$port",
 path: "/send",
 headers: [
-'Accept': "application/json"
+'Accept': "application/json",
+'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
 query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]

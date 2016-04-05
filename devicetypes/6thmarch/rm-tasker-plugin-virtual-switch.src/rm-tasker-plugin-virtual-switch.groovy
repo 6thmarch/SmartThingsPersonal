@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Switch 
- *	Version : 1.0.1
+ *	Version : 1.0.2
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Switch is a SmartThings Device Type that allows you to turn on or off devices 
@@ -51,6 +51,7 @@
  *
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-07	V1.0.1	Switch from HTTP GET request to HTTP POST request
+ *	2016-03-31	V1.0.2	Include basic authentication
  */
 
 metadata {
@@ -76,11 +77,11 @@ metadata {
               required: true, displayDuringSetup: true
               
        input "username", "text", title: "Username",
-              description: "This is the username for authentication for HTTP Bridge. (Not available in RM Tasker Plugin yet))", defaultValue: '',
+              description: "This is the username for authentication for HTTP Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               
        input "passwd", "password", title: "Password",
-              description: "This is the password created for authentication for HTTP Bridge. (Not available in RM Tasker Plugin yet)", defaultValue: '',
+              description: "This is the password created for authentication for HTTP Bridge.", defaultValue: '',
               required: false, displayDuringSetup: true
               }
        input "deviceMacId", "text", title: "Device Mac ID",
@@ -149,9 +150,10 @@ def params = [
 uri: "http://$server:$port",
 path: "/send",
 headers: [
-'Accept': "application/json"
+'Accept': "application/json",
+'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
-query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+query: [ 'deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
     ]
 	if(type == 'post') {
        httpPostJson(params, success)
