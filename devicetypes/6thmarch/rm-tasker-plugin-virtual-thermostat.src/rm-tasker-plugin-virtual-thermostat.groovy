@@ -66,8 +66,8 @@ metadata {
   		capability "Thermostat"
         capability "Switch"
         
-		command "up"
-		command "down"
+		command "coolingSetpointUp"
+		command "coolingSetpointDown"
         command "setTemperature", ["number"]
         command "parse"
 	}
@@ -136,14 +136,14 @@ metadata {
             state "idle", label:'${name}', action:"thermostat.off", backgroundColor:"#269bd2"
 			//state "auto", label:'${name}', action:"thermostat.off", backgroundColor:"#79b821"
 		}
-		standardTile("up", "device.temperature", inactiveLabel: false, decoration: "flat") {
-			state "default", label:'up', action:"up"
+		standardTile("coolingSetpointUp", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat") {
+			state "coolingSetpointUp", label:'up', action:"coolingSetpointUp"
 		}        
-		standardTile("down", "device.temperature", inactiveLabel: false, decoration: "flat") {
-			state "default", label:'down', action:"down"
+		standardTile("coolingSetpointDown", "device.coolingSetpoint", inactiveLabel: false, decoration: "flat") {
+			state "coolingSetpointDown", label:'down', action:"coolingSetpointDown"
 		}
         main "temperature"
-		details("temperature","coolingSetpoint","mode","up","down")
+		details("temperature","coolingSetpoint","mode","coolingSetpointUp","coolingSetpointDown")
 	}
 }
 
@@ -182,26 +182,26 @@ def evaluate(temp,newCoolingSetpoint, newState) {
 		if (temp - newCoolingSetpoint >= 0) {
         	if(newCoolingSetpoint != device.currentValue("coolingSetpoint") | device.currentValue("switch") != "on"){
                 api("onTemp${newCoolingSetpoint}", [], {})
-             	sendEvent(name: "switch", value: "on")
-                sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
+             	sendEvent(name: "switch", value: "on", isStateChange: true)
+                sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint, isStateChange: true)
 
             }
       		cooling = true
-            sendEvent(name: "thermostatOperatingState", value: "cooling")
+            sendEvent(name: "thermostatOperatingState", value: "cooling", isStateChange: true)
 
 		}
 		else if (newCoolingSetpoint - temp >= 0) {
-            sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint)
+            sendEvent(name: "coolingSetpoint", value: newCoolingSetpoint, isStateChange: true)
             idle = true
             
 		}
-		sendEvent(name: "thermostatSetpoint", value: coolingSetpoint)
+		sendEvent(name: "thermostatSetpoint", value: coolingSetpoint, isStateChange: true)
 	}
     else if(mode == "off"){
             if(current != "off"){
               	api('powerOff', [], {})
-                sendEvent(name: "thermostatOperatingState", value: "off")
-                                sendEvent(name: "switch", value: "off")
+                sendEvent(name: "thermostatOperatingState", value: "off", isStateChange: true)
+                                sendEvent(name: "switch", value: "off", isStateChange: true)
 
 
             }
@@ -210,8 +210,8 @@ def evaluate(temp,newCoolingSetpoint, newState) {
 	if (idle && !cooling && mode != "idle") {
             if(current != "idle"){
               	api('powerOff', [], {})
-                sendEvent(name: "thermostatOperatingState", value: "idle")
-                sendEvent(name: "switch", value: "idle")
+                sendEvent(name: "thermostatOperatingState", value: "idle", isStateChange: true)
+                sendEvent(name: "switch", value: "idle", isStateChange: true)
                 
             }
 		
@@ -245,6 +245,24 @@ def down() {
 def setTemperature(value) {
 	sendEvent(name:"temperature", value: value)
     evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
+
+}
+
+def coolingSetpointUp(){
+	int newSetpoint = device.currentValue("coolingSetpoint") + 1
+	log.debug "Setting cool set point up to: ${newSetpoint}"
+	//setCoolingSetpoint(newSetpoint)
+      	evaluate(device.currentValue("temperature"), degreesC, "on")
+
+
+}
+
+def coolingSetpointDown(){
+	int newSetpoint = device.currentValue("coolingSetpoint") - 1
+	log.debug "Setting cool set point down to: ${newSetpoint}"
+	//setCoolingSetpoint(newSetpoint)
+      	evaluate(device.currentValue("temperature"), degreesC, "on")
+
 
 }
 

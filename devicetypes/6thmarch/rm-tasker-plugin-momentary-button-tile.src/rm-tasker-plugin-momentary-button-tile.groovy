@@ -116,8 +116,8 @@ def parse(String description) {
 }
 
 def push() {
-	sendEvent(name: "switch", value: "on", isStateChange: true, display: false)
-	sendEvent(name: "switch", value: "off", isStateChange: true, display: false)
+	sendEvent(name: "switch", value: "on",  display: false)
+	sendEvent(name: "switch", value: "off",  display: false)
 	sendEvent(name: "momentary", value: "pushed", isStateChange: true)
         	api('push', ['repeat' : repeatVal], {})
 
