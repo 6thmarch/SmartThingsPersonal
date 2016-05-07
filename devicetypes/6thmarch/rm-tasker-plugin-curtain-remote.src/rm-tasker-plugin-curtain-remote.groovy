@@ -128,7 +128,7 @@ def on() {
 	log.debug "Executing 'powerOn'"
 	// TODO: handle 'powerOn' command
     api('powerOn', [], {
-        sendEvent(name: 'drawnState', value: 'on')
+        sendEvent(name: 'openState', value: 'on')
     })
 
 }
@@ -137,7 +137,7 @@ def off() {
 	log.debug "Executing 'powerOff'"
 	// TODO: handle 'powerOff' command
     api('powerOff', [], {
-        sendEvent(name: 'drawnState', value: 'off')
+        sendEvent(name: 'openState', value: 'off')
     })
 
 }
