@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Music Player Remote
- *	Version : 1.0.2
+ *	Version : 1.0.3
  * 
  * 	Description:
  * 		RM Tasker Plugin Music Player Remote is a SmartThings Device Type that allows you to turn on or off devices 
@@ -52,6 +52,7 @@
  *  2016-02-29  V1.0.0  Initial release
  *	2016-03-07	V1.0.1	Switch from HTTP Get request to HTTP Post request
  *	2016-03-31	V1.0.2	Include user authentication
+ *	2016-06-20  V1.0.3	Remove colons from MAC ID sent to bridge
  */
  
  preferences {
@@ -457,7 +458,7 @@ headers: [
 'Accept': "application/json",
 'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
-query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+query: ['deviceMac' : deviceMacId.replaceAll(":",""), 'codeId' : code, 'repeat': repeatVal] //args 
     ]
 	if(type == 'post') {
        httpPostJson(params, success)

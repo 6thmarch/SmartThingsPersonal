@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Curtain Remote 
- *	Version : 1.0.2
+ *	Version : 1.0.4
  * 
  * 	Requirements:
  * 		An android device (Android Box/Tablet/Phone) within the same wi-fi network as the Broadlink RM device, with RM Tasker Plugin HTTP Bridge installed and running.
@@ -46,6 +46,8 @@
  *  2016-03-01  V1.0.0  Initial release
  *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  *	2016-03-31	V1.0.2	Include user authentication
+ *	2016-05-14	V1.0.3	Switch on/off state, UI changes
+ *	2016-06-20  V1.0.4	Remove colons from MAC ID sent to bridge
  */
  
  preferences {
@@ -93,10 +95,18 @@ metadata {
         capability "Button"
 	}
 
-	tiles {
-		standardTile("openState", "device.switch", inactiveLabel: false, decoration: "flat", canChangeBackground: true, canChangeIcon: true) {
-	        state "off", label: "Closed", action:"switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
-            state "on", label: "Opened", action:"switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+	tiles {   
+		standardTile("main", "device.switch", width: 3, height: 2) {
+	        state "off", label: "Open", action:"switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+            state "on", label: "Closed", action:"switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+        }
+        
+        standardTile("open", "device.button", inactiveLabel:false, decoration:"flat") {
+            state "default", label: "open",  icon:"st.switches.switch.off", action:"off", backgroundColor: "#ffffff"
+        }
+        
+        standardTile("close", "device.button", inactiveLabel:false, decoration:"flat") {
+            state "default", label: "close",  icon:"st.switches.switch.on", action:"on", backgroundColor: "#ffffff"
         }
         
         standardTile("pause", "device.button", inactiveLabel:false, decoration:"flat") {
@@ -104,8 +114,8 @@ metadata {
         }  
       
         
-		main "openState"
-		details(["openState", "pause"])
+		main "main"
+		details(["main", "open", "pause", "close"])
 	}
     
     command "pause"
@@ -125,21 +135,15 @@ def parse(String description) {
 }
 
 def on() {
-	log.debug "Executing 'powerOn'"
-	// TODO: handle 'powerOn' command
-    api('powerOn', [], {
-        sendEvent(name: 'openState', value: 'on')
+    api('close', [], {
+        sendEvent(name: 'switch', value: 'on')
     })
-
 }
 
 def off() {
-	log.debug "Executing 'powerOff'"
-	// TODO: handle 'powerOff' command
-    api('powerOff', [], {
-        sendEvent(name: 'openState', value: 'off')
+    api('open', [], {
+        sendEvent(name: 'switch', value: 'off')
     })
-
 }
 
 def pause(){
@@ -150,8 +154,8 @@ def pause(){
 def api(method, args = [], success = {}) {
 
 def methods = [
-'powerOn': [code: curtainOpenCode, type: 'post'],
-'powerOff': [code: curtainCloseCode, type: 'post'],
+'open': [code: curtainOpenCode, type: 'post'],
+'close': [code: curtainCloseCode, type: 'post'],
 'pause': [code: curtainPauseCode, type: 'post']
     ]
 def request = methods.getAt(method)
@@ -171,7 +175,7 @@ headers: [
 'Accept': "application/json",
 'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
-query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+query: ['deviceMac' : deviceMacId.replaceAll(":",""), 'codeId' : code, 'repeat': repeatVal] //args 
     ]
 	if(type == 'post') {
        httpPostJson(params, success)

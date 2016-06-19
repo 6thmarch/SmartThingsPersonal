@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin 3 Speed Fan Controller 
- *	Version : 1.0.0
+ *	Version : 1.0.1
  * 
  * 	Requirements:
  * 		An android device (Android Box/Tablet/Phone) within the same wi-fi network as the Broadlink RM device, with RM Tasker Plugin HTTP Bridge installed and running.
@@ -45,6 +45,7 @@
  *	https://github.com/6thmarch/SmartThingsPersonal
  *
  *  2016-05-07  V1.0.0  Initial release
+ *	2016-06-20  V1.0.1	Remove colons from MAC ID sent to bridge
  */
 
 
@@ -69,7 +70,7 @@ metadata {
 	tiles (scale:2) {
 		multiAttributeTile(name: "switch", type: "lighting", width: 6, height: 4, canChangeIcon: true) {
 			tileAttribute ("device.currentState", key: "PRIMARY_CONTROL") {
-  				attributeState "default", label:'ADJUSTING', action:"refresh.refresh", icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "turningOff"
+  				attributeState "default", label:'ADJUSTING', action:"refresh.refresh", icon:"st.Lighting.light24", backgroundColor:"#2179b8", nextState: "OFF"
 				attributeState "HIGH", label:'HIGH', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#486e13", nextState: "OFF"
 				attributeState "MED", label:'MED', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#60931a", nextState: "OFF"
 				attributeState "LOW", label:'LOW', action:"switch.off", icon:"st.Lighting.light24", backgroundColor:"#79b821", nextState: "OFF"
@@ -81,15 +82,15 @@ metadata {
 		}
 		standardTile("lowSpeed", "device.currentState", inactiveLabel: false, width: 2, height: 2) {
         	state "default", label: 'LOW', action: "lowSpeed", icon:"st.Home.home30", backgroundColor: "#ffffff"
-			state "LOW", label:'LOW', action: "lowSpeed", icon:"st.Home.home30", backgroundColor: "#79b821"
+			state "LOW", label:'LOW', action: "switch.off", icon:"st.Home.home30", backgroundColor: "#79b821"
   		}
 		standardTile("medSpeed", "device.currentState", inactiveLabel: false, width: 2, height: 2) {
 			state "default", label: 'MED', action: "medSpeed", icon:"st.Home.home30", backgroundColor: "#ffffff"
-			state "MED", label: 'MED', action: "medSpeed", icon:"st.Home.home30", backgroundColor: "#79b821"
+			state "MED", label: 'MED', action: "switch.off", icon:"st.Home.home30", backgroundColor: "#79b821"
 		}
 		standardTile("highSpeed", "device.currentState", inactiveLabel: false, width: 2, height: 2) {
 			state "default", label: 'HIGH', action: "highSpeed", icon:"st.Home.home30", backgroundColor: "#ffffff"
-			state "HIGH", label: 'HIGH', action: "highSpeed", icon:"st.Home.home30", backgroundColor: "#79b821"
+			state "HIGH", label: 'HIGH', action: "switch.off", icon:"st.Home.home30", backgroundColor: "#79b821"
 		}
 		standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
@@ -158,6 +159,7 @@ def on() {
     
 	api('powerOn', [], {
         sendEvent(name: 'currentState', value: state.lastSpeedState)
+        sendEvent(name: "switch", value: "on") 
     })
     }
 
@@ -166,11 +168,7 @@ def off() {
 	
 	api('powerOff', [], {
         sendEvent(name: 'currentState', value: 'OFF')
-
-
-       	//sendEvent(name: 'lowSpeed', value: 'default')
-        //sendEvent(name: 'medSpeed', value: 'default')
-        //sendEvent(name: 'highSpeed', value: 'default')
+        sendEvent(name: "switch", value: "off") 
     })
     }
 
@@ -178,8 +176,6 @@ def setLevel(value) {
 	def lowThresholdvalue = (settings.lowThreshold != null && settings.lowThreshold != "") ? settings.lowThreshold.toInteger() : 33
 	def medThresholdvalue = (settings.medThreshold != null && settings.medThreshold != "") ? settings.medThreshold.toInteger() : 67
 	def highThresholdvalue = (settings.highThreshold != null && settings.highThreshold != "") ? settings.highThreshold.toInteger() : 99
-	def valWord = value
-
 
 	if (value == "LOW") { value = lowThresholdvalue }
 	if (value == "MED") { value = medThresholdvalue }
@@ -192,17 +188,19 @@ def setLevel(value) {
 
 	if (level <= lowThresholdvalue) 
     { 
-    sendEvent(name: "currentState", value: "LOW" as String, displayed: false) 
+    //sendEvent(name: "currentState", value: "LOW" as String, displayed: false) 
+   		 transitionToSpeed(currentState, "LOW")
     }
 	if (level >= lowThresholdvalue+1 && level <= medThresholdvalue) 
     { 
-    sendEvent(name: "currentState", value: "MED" as String, displayed: false) 
+    //sendEvent(name: "currentState", value: "MED" as String, displayed: false) 
+    	 transitionToSpeed(currentState, "MED")
     }
 	if (level >= medThresholdvalue+1) 
     { 
-    sendEvent(name: "currentState", value: "HIGH" as String, displayed: false) 
+    //sendEvent(name: "currentState", value: "HIGH" as String, displayed: false) 
+    	transitionToSpeed(currentState, "HIGH")
     }
-	    transitionToSpeed(currentState, valWord)
 }
 
 def transitionToSpeed(currentState, toState)
@@ -241,6 +239,7 @@ def transitionToSpeed(currentState, toState)
 		to = 3
 		break
    }
+   
 	state.lastSpeedState = toState
     if(current != to)
     {
@@ -250,13 +249,11 @@ def transitionToSpeed(currentState, toState)
         	steps = (to - current)
         }
         else
-        {
-        	
+        {        	
             steps = ((3 - current) + to) % 3
         }
         api('speedChange', ['repeat' : steps], {
-            sendEvent(name: "currentState", value: toState as String, displayed: false) 
-
+           sendEvent(name: "currentState", value: toState as String, displayed: false) 
  		})
   	}
 	
@@ -310,7 +307,7 @@ headers: [
 'Accept': "application/json",
 'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
         ],
-query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+query: ['deviceMac' : deviceMacId.replaceAll(":",""), 'codeId' : code, 'repeat': repeatVal] //args 
     ]
 	if(type == 'post') {
        httpPostJson(params, success)

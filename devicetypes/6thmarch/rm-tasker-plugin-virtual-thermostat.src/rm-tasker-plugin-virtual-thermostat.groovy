@@ -2,7 +2,7 @@
  *  Copyright 2016 Benjamin Yam
  *	
  *	RM Tasker Plugin Virtual Thermostat 
- *	Version : 1.0.3
+ *	Version : 1.0.4
  * 
  * 	Description:
  * 		RM Tasker Plugin Virtual Thermostat is a SmartThings Device Type that act as a virtual thermostat and controls a air conditioner.
@@ -52,6 +52,7 @@
  *	2016-03-08	V1.0.1	Switch from HTTP GET request to HTTP POST request
  *	2016-03-25	V1.0.2	Bug fixes
  *	2016-03-31	V1.0.3	Include user authentication
+ *	2016-06-20  V1.0.4	Remove colons from MAC ID sent to bridge
  */
 
   import groovy.transform.Field
@@ -166,7 +167,7 @@ def parse(String description) {
 
 
 def evaluate(temp,newCoolingSetpoint, newState) {
-	log.debug "evaluate($temp, $newCoolingSetpoint)"
+	log.debug "evaluate($temp, $newCoolingSetpoint, $newState)"
 	def threshold = 1.0
 	def current = device.currentValue("thermostatOperatingState")
 	def mode = newState
@@ -224,23 +225,6 @@ def setLevel(value) {
      evaluate(device.currentValue("temperature"), device.currentValue("coolingSetpoint"), "on")
 }
 
-def up() {
-	log.debug "up()"
-
-	def ts = device.currentState("coolingSetpoint")
-	def degreesC = ts ? ts.integerValue + 1 : 24 
-//	sendEvent(name:"coolingSetpoint", value: degreesC)
-   	evaluate(device.currentValue("temperature"), degreesC, "on")
-}
-
-def down() {
-	log.debug "down()"
-
-	def ts = device.currentState("coolingSetpoint")
-	def degreesC = ts ? ts.integerValue - 1 : 24 
-//	sendEvent(name:"coolingSetpoint", value: degreesC)
-  	evaluate(device.currentValue("temperature"), degreesC, "on")
-}
 
 def setTemperature(value) {
 	sendEvent(name:"temperature", value: value)
@@ -252,7 +236,7 @@ def coolingSetpointUp(){
 	int newSetpoint = device.currentValue("coolingSetpoint") + 1
 	log.debug "Setting cool set point up to: ${newSetpoint}"
 	//setCoolingSetpoint(newSetpoint)
-      	evaluate(device.currentValue("temperature"), degreesC, "on")
+      	evaluate(device.currentValue("temperature"), newSetpoint, "on")
 
 
 }
@@ -261,7 +245,7 @@ def coolingSetpointDown(){
 	int newSetpoint = device.currentValue("coolingSetpoint") - 1
 	log.debug "Setting cool set point down to: ${newSetpoint}"
 	//setCoolingSetpoint(newSetpoint)
-      	evaluate(device.currentValue("temperature"), degreesC, "on")
+    evaluate(device.currentValue("temperature"), newSetpoint, "on")
 
 
 }
@@ -340,7 +324,7 @@ headers: [
 'Authorization' : 'Basic '+"$username:$passwd".bytes.encodeBase64()
 
         ],
-query: ['deviceMac' : deviceMacId, 'codeId' : code, 'repeat': repeatVal] //args 
+query: ['deviceMac' : deviceMacId.replaceAll(":",""), 'codeId' : code, 'repeat': repeatVal] //args 
     ]
 	if(type == 'post') {
        httpPostJson(params, success)
